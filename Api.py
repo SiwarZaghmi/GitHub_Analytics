@@ -133,3 +133,49 @@ def webhook():
              return ('ok')
          else:
           return abort(404, description="label can not be added")
+       elif data['action'] == "unlabeled":
+         label = labels_collection.find_one({'issue_id': data['issue']['node_id']})
+         if label:
+            myquery = {"id": data['label']['id']}
+            labels_collection.delete_one(myquery)
+            return ("ok")
+         else:
+             return abort(404, description="label Not Found")
+
+
+       # opened, edited, deleted, pinned, unpinned, closed, reopened, assigned
+       # unassigned, labeled, unlabeled, locked, unlocked, transferred, milestoned,
+       # or demilestoned.
+
+       elif data['action'] == "assigned":
+           assignee = assigness_collection.find_one({'issue_id': data['issue']['node_id']
+                                                     })
+           if not assignee:
+            assigness_collection.insert_one({
+                'login': data['assignee']['login'],
+               'issue_id': data['issue']['node_id'],
+               'id': data['assignee']['id']
+
+
+           })
+            return("ok")
+           else:
+               return abort(404, description="assigne can not be added")
+
+
+       elif data['action'] == "unassigned":
+           assignee = assigness_collection.find_one({'issue_id': data['issue']['node_id']})
+           if assignee:
+            myquery = {"issue_id": data['issue']['node_id']}
+            assigness_collection.delete_one(myquery)
+            return ("ok")
+           else:
+
+               return abort(404, description="assigne not found")
+       # opened, edited, deleted, pinned, unpinned, closed, reopened, assigned
+       # unassigned, labeled, unlabeled, locked, unlocked, transferred, milestoned,
+       # or demilestoned.
+
+
+
+       else: return("bug")
