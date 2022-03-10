@@ -38,6 +38,47 @@ for column in project:
                'body': issue['body']
 
            })
+           labels = issue['labels']
+       for label in labels:
+           name = label['name'].lower()
+
+           if name[0:4] == "size" or name[0:4] == "epic":
+             try:
+               name1 = name.replace(" ","")
+               nv = name1.split(":")
+
+               print(nv[0])
+               labels_collection.insert_one({
+               'id': label['id'],
+               'issue_id': issue['node_id'],
+               'description': label['description'],
+               'name': nv[0],
+               'value': nv[1]
+           })
+             except IndexError:
+                 print('only one value')
+           elif name[0:5] == "logged":
+             try:
+               name1 = name.replace(" ", "")
+               nv = name1.split(":")
+               labels_collection.insert_one({
+                   'id': label['id'],
+                   'issue_id': issue['node_id'],
+                   'description': label['description'],
+                   'name': nv[0],
+                   'value': nv[1]
+               })
+             except IndexError:
+               print('only one value')
+           else:
+               labels_collection.insert_one({
+                   'id': label['id'],
+                   'issue_id': issue['node_id'],
+                   'description': label['description'],
+                   'name': label['name'],
+                   'value': 'null'
+               })
+
 
        project_card_collection.insert_one({
            'issue_id': issue['node_id'],
