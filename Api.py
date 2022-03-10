@@ -179,3 +179,54 @@ def webhook():
 
 
        else: return("bug")
+  elif request.headers['X-GitHub-Event'] == 'project_card':
+       if data['action'] == "converted":
+         card = project_card_collection.find_one({'id': data['project_card']['id']})
+         if not card:
+          content = data['project_card']['content_url']
+          issue = requests.get(content, headers=headers).json()
+          column_content=data['project_card']['column_url']
+          column = requests.get(column_content, headers=headers).json()
+          project_card_collection.insert_one({
+               'issue_id': issue['node_id'],
+               'card_name': column['name'],
+               'id': data['project_card']['id'],
+           })
+          return("ok")
+         else:
+          return abort(404, description="card not found")
+       elif data['action'] == "moved":
+         card = project_card_collection.find_one({'id': data['project_card']['id']})
+         if card:
+          column_content=data['project_card']['column_url']
+          column = requests.get(column_content, headers=headers).json()
+          project_card_collection.update_one({'id': data['project_card']['id']},
+                                       {"$set": {'card_name': column['name'],
+                                                 }})
+
+          return("ok")
+         else:
+           return abort(404, description="card not found")
+       elif data['action'] == "deleted":
+           card = project_card_collection.find_one({'id': data['project_card']['id']})
+           if card :
+               myquery = {"id": data['project_card']['id']}
+               project_card_collection.delete_one(myquery)
+               print("c est bon")
+
+               return ("ok")
+           else:
+             return abort(404, description="card not found")
+
+
+       else: return("bug")
+   else:
+       return ("bug")
+
+
+
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
