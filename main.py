@@ -85,3 +85,15 @@ for column in project:
            'card_name': column_name,
            'id': card['id'],
        })
+
+       assigness = issue['assignees']
+       for assigne in assigness:
+           assigness_collection.insert_one({
+               'login': assigne['login'],
+               'issue_id': issue['node_id'],
+               'id': assigne['id']
+
+           })
+
+ except KeyError:
+     print('Can not find "something"')
