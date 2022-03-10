@@ -8,16 +8,12 @@ import requests
 app = Flask(__name__)
 
 
-
-#1 connexion bdd
-
 @app.route('/git' , methods=['POST'])
 def webhook():
    token = "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"
    headers = {'Authorization': "token {}".format(token)}
    client = pymongo.MongoClient('mongodb://127.0.0.1:27017/')
    mydb = client['GitHubProject']
-    # les collections
    issues_collection = mydb.issues
    labels_collection = mydb.labels
    project_card_collection = mydb.project_cards
@@ -38,7 +34,7 @@ def webhook():
              'updated_at': data['issue']['updated_at'],
              'closed_at': data['issue']['closed_at'],
              'body': data['issue']['body'],
-             #'id_milestone': data['issue']['milestone']['node_id']
+             
            })
            labels = data['issue']['labels']
            for label in labels:
@@ -143,10 +139,6 @@ def webhook():
              return abort(404, description="label Not Found")
 
 
-       # opened, edited, deleted, pinned, unpinned, closed, reopened, assigned
-       # unassigned, labeled, unlabeled, locked, unlocked, transferred, milestoned,
-       # or demilestoned.
-
        elif data['action'] == "assigned":
            assignee = assigness_collection.find_one({'issue_id': data['issue']['node_id']
                                                      })
@@ -172,11 +164,6 @@ def webhook():
            else:
 
                return abort(404, description="assigne not found")
-       # opened, edited, deleted, pinned, unpinned, closed, reopened, assigned
-       # unassigned, labeled, unlabeled, locked, unlocked, transferred, milestoned,
-       # or demilestoned.
-
-
 
        else: return("bug")
   elif request.headers['X-GitHub-Event'] == 'project_card':
@@ -222,10 +209,6 @@ def webhook():
        else: return("bug")
    else:
        return ("bug")
-
-
-
-
 
 
 if __name__ == '__main__':
