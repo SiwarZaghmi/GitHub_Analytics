@@ -59,3 +59,77 @@ def webhook():
            return("ok")
          else :
            return abort(404, description="issue existe")
+       elif  data['action'] == "closed" or data['action'] == "edited":
+           issue = issues_collection.find_one({'node_id': data['issue']['node_id']})
+           if issue:
+            issues_collection.update_one({'node_id': data['issue']['node_id']},
+                                              {"$set": {'state': data['issue']['state'],
+                                                        'updated_at' : data['issue']['updated_at'],
+                                                        'closed_at': data['issue']['closed_at'],
+                                                        'title': data['issue']['title'],
+                                                        'body': data['issue']['body'],
+                                                           }})
+            return ("ok")
+           else : return abort(404, description="issue not found")
+
+       elif data['action'] == "deleted" :
+          issue = issues_collection.find_one({'node_id': data['issue']['node_id']})
+          if issue:
+              # jointure
+           issue_del = {"id": data['issue']['node_id']}
+           info_del = {"issue_id" : data['issue']['node_id']}
+           issues_collection.delete_one(issue_del)
+           labels_collection.delete_many(info_del)
+           assigness_collection.delete_many(info_del)
+           project_card_collection.delete_one(info_del)
+           return ("ok")
+          else:
+             return abort(404, description="issue not found")
+
+
+       elif data['action'] == "labeled":
+         label = labels_collection.find_one({'id': data['label']['id']})
+         if not label:
+             label = data['label']
+             name = label['name'].lower()
+             if name[0:4] == "size" or name[0:4] == "epic":
+                 try:
+                     name1 = name.replace(" ", "")
+                     nv = name1.split(":")
+                     print(nv[0])
+                     labels_collection.insert_one({
+                         'id': label['id'],
+                         'issue_id': data['issue']['node_id'],
+                         'description': label['description'],
+                         'name': nv[0],
+                         'value': nv[1]
+                     })
+                 except IndexError:
+                     print('only one value')
+                 return("ok")
+             elif name[0:5] == "logged":
+                 try:
+                     name1 = name.replace(" ", "")
+                     nv = name1.split(":")
+                     labels_collection.insert_one({
+                         'id': label['id'],
+                         'issue_id': data['issue']['node_id'],
+                         'description': label['description'],
+                         'name': nv[0],
+                         'value': nv[1]
+                     })
+                 except IndexError:
+                     print('only one value')
+                 return ('ok')
+
+             else:
+                 labels_collection.insert_one({
+                     'id': label['id'],
+                     'issue_id': data['issue']['node_id'],
+                     'description': label['description'],
+                     'name': label['name'],
+                     'value': 'null'
+                 })
+             return ('ok')
+         else:
+          return abort(404, description="label can not be added")
