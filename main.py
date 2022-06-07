@@ -1,15 +1,16 @@
 import requests
 import pymongo
-token = "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"
+token = "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"
 headers = { 'Authorization' : "token {}". format(token)}
-client = pymongo.MongoClient('mongodb://127.0.0.1:27017/')
-mydb = client['GitHubProject']
+
+client = pymongo.MongoClient("mongodb+srv://karim:22654790@cluster0.3jtiz.mongodb.net/?retryWrites=true&w=majority")
+mydb = client['Github']
 # les collections
 issues_collection = mydb.issues
 labels_collection = mydb.labels
 project_card_collection = mydb.project_cards
 assigness_collection = mydb.assignees
-milestone_collection = mydb.milestones
+
 #get project
 project = requests.get('https://api.github.com/projects/14134007/columns', headers = headers).json()
 #parcourir les colonnes
@@ -38,38 +39,52 @@ for column in project:
                'body': issue['body']
 
            })
-           labels = issue['labels']
+       labels = issue['labels']
        for label in labels:
            name = label['name'].lower()
 
-           if name[0:4] == "size" or name[0:4] == "epic":
-             try:
-               name1 = name.replace(" ","")
-               nv = name1.split(":")
+           if name[0:4] == "size":
+               try:
+                   name1 = name.replace(" ", "")
+                   nv = name1.split(":")
+                   value = int(nv[1])
+                   labels_collection.insert_one({
+                       'id': label['id'],
+                       'issue_id': issue['node_id'],
+                       'description': label['description'],
+                       'name': nv[0],
+                       'value': value
+                   })
+               except IndexError:
+                   print('only one value')
+           elif name[0:4] == "epic":
+               try:
 
-               print(nv[0])
-               labels_collection.insert_one({
-               'id': label['id'],
-               'issue_id': issue['node_id'],
-               'description': label['description'],
-               'name': nv[0],
-               'value': nv[1]
-           })
-             except IndexError:
-                 print('only one value')
-           elif name[0:5] == "logged":
-             try:
-               name1 = name.replace(" ", "")
-               nv = name1.split(":")
-               labels_collection.insert_one({
-                   'id': label['id'],
-                   'issue_id': issue['node_id'],
-                   'description': label['description'],
-                   'name': nv[0],
-                   'value': nv[1]
-               })
-             except IndexError:
-               print('only one value')
+                   name1 = name.replace(" ", "")
+                   nv = name1.split(":")
+                   namevv = name.split(":")
+                   labels_collection.insert_one({
+                       'id': label['id'],
+                       'issue_id': issue['node_id'],
+                       'description': label['description'],
+                       'name': nv[0],
+                       'value': namevv[1]
+                   })
+               except IndexError:
+                   print('only one value')
+           elif name[0:6] == "logged":
+               try:
+                   name1 = name.replace(" ", "")
+                   nv = name1.split(":")
+                   labels_collection.insert_one({
+                       'id': label['id'],
+                       'issue_id': issue['node_id'],
+                       'description': label['description'],
+                       'name': nv[0],
+                       'value': int(nv[1])
+                   })
+               except IndexError:
+                   print('only one value')
            else:
                labels_collection.insert_one({
                    'id': label['id'],
